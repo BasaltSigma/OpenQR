@@ -21,6 +21,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CameraOfflineSession;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.SessionConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private Size imageDimension;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
+    private boolean isFlashlightOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +106,22 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void toggleFlashlight() {
-
+        if (cameraDevice == null) {
+            return;
+        }
+        try {
+            if (!isFlashlightOn) {
+                captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
+            }
+            else {
+                captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF);
+            }
+            isFlashlightOn = !isFlashlightOn;
+            captureRequest = captureRequestBuilder.build();
+            captureSessions.setRepeatingRequest(captureRequest, null, mBackgroundHandler);
+        } catch (CameraAccessException cae) {
+            cae.printStackTrace();
+        }
     }
 
     private void openCamera() {
@@ -121,6 +138,9 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             manager.openCamera(cameraId, stateCallback, null);
+            if (!characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+                flashlightButton.setEnabled(false);
+            }
         } catch (CameraAccessException exc) {
             exc.printStackTrace();
         }

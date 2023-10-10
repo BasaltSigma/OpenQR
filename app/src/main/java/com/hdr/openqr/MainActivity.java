@@ -41,7 +41,7 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "OpenQR";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
-    private boolean paused = false;
+    public volatile boolean paused = false;
     private ImageButton flashlightButton;
     private TextureView cameraView;
 
@@ -50,10 +50,11 @@ public class MainActivity extends AppCompatActivity {
     protected CameraCaptureSession captureSessions;
     protected CaptureRequest captureRequest;
     protected CaptureRequest.Builder captureRequestBuilder;
-    private Size imageDimension;
+    public Size imageDimension;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
     private boolean isFlashlightOn = false;
+    private CodeScanner codeScanner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,9 +175,14 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
                 }
             }, null);
+            codeScanner = CodeScanner.createAndStartInstance(cameraView, this);
         } catch (CameraAccessException cae) {
             cae.printStackTrace();
         }
+    }
+
+    protected void onSuccessfulCodeScan(String data) {
+
     }
 
     protected void updatePreview() {
